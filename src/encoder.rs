@@ -246,6 +246,8 @@ impl EncoderConfig {
             sys::avifRGBImageSetDefaults(&mut rgb, image);
             rgb.format = layout.rgb_format;
             rgb.depth = layout.rgb_depth;
+            // SAFETY: `avifImageRGBToYUV` only reads from `rgb.pixels`, so casting the
+            // shared `&[u8]` to `*mut u8` is sound — the buffer is never mutated.
             rgb.pixels = pixels.as_ptr() as *mut u8;
             rgb.rowBytes = width * (layout.rgb_channels * layout.sample_bytes) as u32;
 
@@ -277,7 +279,13 @@ impl EncoderConfig {
             };
             let res = sys::avifEncoderWrite(encoder, image, &mut output);
             let encoded = if ffi::is_ok(res) {
-                Ok(std::slice::from_raw_parts(output.data, output.size).to_vec())
+                // `slice::from_raw_parts` requires a non-null pointer even for length 0,
+                // so guard against an empty/null buffer before constructing the slice.
+                if output.data.is_null() || output.size == 0 {
+                    Ok(Vec::new())
+                } else {
+                    Ok(std::slice::from_raw_parts(output.data, output.size).to_vec())
+                }
             } else {
                 Err(EncodeError::Avif(AvifError::Encode(ffi::result_message(res))))
             };
