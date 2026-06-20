@@ -7,6 +7,7 @@
 
 use std::io::Write;
 use std::ptr;
+use std::sync::Once;
 
 use image::error::{EncodingError, ImageFormatHint, UnsupportedError, UnsupportedErrorKind};
 use image::{ExtendedColorType, ImageError, ImageEncoder, ImageResult};
@@ -135,6 +136,7 @@ fn layout_for(color_type: ExtendedColorType) -> Option<Layout> {
     use ExtendedColorType as E;
     let rgb = sys::avifRGBFormat_AVIF_RGB_FORMAT_RGB;
     let rgba = sys::avifRGBFormat_AVIF_RGB_FORMAT_RGBA;
+
     let l = |src, rgb_ch, sb, fmt, depth, gray, alpha| {
         Some(Layout {
             src_channels: src,
@@ -146,6 +148,7 @@ fn layout_for(color_type: ExtendedColorType) -> Option<Layout> {
             alpha,
         })
     };
+
     match color_type {
         E::L8 => l(1, 3, 1, rgb, 8, true, false),
         E::La8 => l(2, 4, 1, rgba, 8, true, true),
@@ -166,17 +169,37 @@ fn expand_gray(buf: &[u8], sample_bytes: usize, alpha: bool) -> Vec<u8> {
     let out_ch = if alpha { 4 } else { 3 };
     let pixels = buf.len() / (in_ch * sample_bytes);
     let mut out = Vec::with_capacity(pixels * out_ch * sample_bytes);
+
     for i in 0..pixels {
         let base = i * in_ch * sample_bytes;
         let luma = &buf[base..base + sample_bytes];
         out.extend_from_slice(luma);
         out.extend_from_slice(luma);
         out.extend_from_slice(luma);
+
         if alpha {
             out.extend_from_slice(&buf[base + sample_bytes..base + 2 * sample_bytes]);
         }
     }
+
     out
+}
+
+/// SVT-AV1 prints encoder version, build, and per-frame config banners to stderr at its default verbosity. It reads the
+/// verbosity threshold from the `SVT_LOG` environment variable exactly once, on first use, so we lower it to `1`
+/// (errors + fatal only, silencing the info/warn banners) before the first encode. A caller who has already set
+/// `SVT_LOG` keeps their choice.
+fn silence_svt_logs() {
+    static INIT: Once = Once::new();
+    INIT.call_once(|| {
+        if std::env::var_os("SVT_LOG").is_none() {
+            // SAFETY: runs exactly once via `Once`, before any encoding starts SVT-AV1; there is no concurrent
+            // reader/writer of this variable inside the library here.
+            unsafe {
+                std::env::set_var("SVT_LOG", "1");
+            }
+        }
+    });
 }
 
 fn image_depth(bit_depth: BitDepth) -> u32 {
@@ -193,6 +216,8 @@ impl EncoderConfig {
         if width == 0 || height == 0 {
             return Err(EncodeError::Avif(AvifError::InvalidDimensions { width, height }));
         }
+
+        silence_svt_logs();
         let layout = layout_for(color_type).ok_or(EncodeError::Unsupported(color_type))?;
 
         let expected = width as usize * height as usize * layout.src_channels * layout.sample_bytes;
@@ -223,9 +248,11 @@ impl EncoderConfig {
                 image_depth(self.bit_depth),
                 sys::avifPixelFormat_AVIF_PIXEL_FORMAT_YUV420,
             );
+
             if image.is_null() {
                 return Err(EncodeError::Avif(AvifError::EncoderInit("avifImageCreate returned null".into())));
             }
+
             let result = self.encode_into(image, pixels, &layout, width);
             sys::avifImageDestroy(image);
             result
@@ -246,6 +273,7 @@ impl EncoderConfig {
             sys::avifRGBImageSetDefaults(&mut rgb, image);
             rgb.format = layout.rgb_format;
             rgb.depth = layout.rgb_depth;
+
             // SAFETY: `avifImageRGBToYUV` only reads from `rgb.pixels`, so casting the
             // shared `&[u8]` to `*mut u8` is sound — the buffer is never mutated.
             rgb.pixels = pixels.as_ptr() as *mut u8;
@@ -266,6 +294,7 @@ impl EncoderConfig {
             (*encoder).quality = self.quality as i32;
             (*encoder).qualityAlpha = self.quality_alpha as i32;
             (*encoder).maxThreads = self.threads.unwrap_or(0) as i32;
+
             if self.tile_columns == 0 && self.tile_rows == 0 {
                 (*encoder).autoTiling = sys::AVIF_TRUE as sys::avifBool;
             } else {
@@ -277,6 +306,7 @@ impl EncoderConfig {
                 data: ptr::null_mut(),
                 size: 0,
             };
+
             let res = sys::avifEncoderWrite(encoder, image, &mut output);
             let encoded = if ffi::is_ok(res) {
                 // `slice::from_raw_parts` requires a non-null pointer even for length 0,

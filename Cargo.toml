@@ -13,6 +13,6 @@ image = "0.25"
 thiserror = "2"
 
 [build-dependencies]
+bindgen = "0.72.1"
 ureq = "3"
 zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
-bindgen = "0.72.1"
