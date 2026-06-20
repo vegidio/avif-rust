@@ -1,4 +1,4 @@
-# avif-rust
+# avif-rs
 
 A Rust library to encode AVIF images using SVT-AV1 and decode using dav1d.
 
@@ -7,7 +7,7 @@ A Rust library to encode AVIF images using SVT-AV1 and decode using dav1d.
 This library can be installed using Cargo. To do that, run the following command in your project's root directory:
 
 ```bash
-cargo add avif-rust
+cargo add avif-rs
 ```
 
 The crate links as `avif`, so you import it with `use avif;` regardless of the package name.
@@ -113,7 +113,7 @@ $ AVIF_BINARIES_DIR=/path/to/extracted/libs cargo build
 
 ## 📝 License
 
-**avif-rust** is released under the Apache 2.0 License. See [LICENSE](LICENSE) for details.
+**avif-rs** is released under the Apache 2.0 License. See [LICENSE](LICENSE) for details.
 
 ## 👨🏾‍💻 Author
 

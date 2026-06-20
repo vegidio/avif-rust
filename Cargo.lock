@@ -114,7 +114,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "avif-rust"
+name = "avif-rs"
 version = "0.1.0"
 dependencies = [
  "bindgen",

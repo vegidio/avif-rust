@@ -1,4 +1,4 @@
-//! `avif-rust` — encode and decode AVIF images via libavif.
+//! `avif-rs` — encode and decode AVIF images via libavif.
 //!
 //! The libavif C library (plus its codec/support dependencies) is downloaded as a prebuilt **static** library at build
 //! time and linked directly into this crate, so consumers do not need libavif installed on the host. See `build.rs`.

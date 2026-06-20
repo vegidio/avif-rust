@@ -1,4 +1,4 @@
-//! Build script for `avif-rust`.
+//! Build script for `avif-rs`.
 //!
 //! At build time this script obtains the prebuilt **static** libavif binaries (and the
 //! codec/support libraries it depends on) for the current target, links them statically
@@ -68,7 +68,7 @@ fn download_and_extract() -> PathBuf {
     let url = format!(
         "https://github.com/vegidio/binaries-avif/releases/download/{VERSION}/{archive}"
     );
-    eprintln!("avif-rust: downloading {url}");
+    eprintln!("avif-rs: downloading {url}");
 
     let bytes = download(&url);
     extract_zip(&bytes, &cache_dir);
@@ -85,13 +85,13 @@ fn archive_name() -> String {
         "linux" => "linux",
         "macos" => "osx",
         "windows" => "windows",
-        other => panic!("avif-rust: unsupported target OS `{other}`"),
+        other => panic!("avif-rs: unsupported target OS `{other}`"),
     };
 
     let arch = match target_arch.as_str() {
         "x86_64" => "x64",
         "aarch64" => "arm64",
-        other => panic!("avif-rust: unsupported target architecture `{other}`"),
+        other => panic!("avif-rs: unsupported target architecture `{other}`"),
     };
 
     format!("static_{os}_{arch}.zip")
@@ -101,23 +101,23 @@ fn archive_name() -> String {
 fn download(url: &str) -> Vec<u8> {
     let mut reader = ureq::get(url)
         .call()
-        .unwrap_or_else(|e| panic!("avif-rust: failed to download {url}: {e}"))
+        .unwrap_or_else(|e| panic!("avif-rs: failed to download {url}: {e}"))
         .into_body()
         .into_reader();
 
     let mut bytes = Vec::new();
     io::copy(&mut reader, &mut bytes)
-        .unwrap_or_else(|e| panic!("avif-rust: failed to read response body from {url}: {e}"));
+        .unwrap_or_else(|e| panic!("avif-rs: failed to read response body from {url}: {e}"));
     bytes
 }
 
 /// Extracts a zip archive (held entirely in memory) into `dest`.
 fn extract_zip(bytes: &[u8], dest: &Path) {
     let reader = io::Cursor::new(bytes);
-    let mut zip = zip::ZipArchive::new(reader).expect("avif-rust: invalid zip archive");
+    let mut zip = zip::ZipArchive::new(reader).expect("avif-rs: invalid zip archive");
 
     for i in 0..zip.len() {
-        let mut entry = zip.by_index(i).expect("avif-rust: corrupt zip entry");
+        let mut entry = zip.by_index(i).expect("avif-rs: corrupt zip entry");
         let Some(rel_path) = entry.enclosed_name() else {
             continue; // skip unsafe / absolute paths
         };
@@ -132,8 +132,8 @@ fn extract_zip(bytes: &[u8], dest: &Path) {
             fs::create_dir_all(parent).unwrap();
         }
         let mut out_file = fs::File::create(&out_path)
-            .unwrap_or_else(|e| panic!("avif-rust: cannot create {}: {e}", out_path.display()));
-        io::copy(&mut entry, &mut out_file).expect("avif-rust: failed to extract file");
+            .unwrap_or_else(|e| panic!("avif-rs: cannot create {}: {e}", out_path.display()));
+        io::copy(&mut entry, &mut out_file).expect("avif-rs: failed to extract file");
     }
 }
 
@@ -184,9 +184,9 @@ fn generate_bindings(include_dir: &Path) {
         .generate_comments(false)
         .layout_tests(false)
         .generate()
-        .expect("avif-rust: failed to generate bindings from avif.h");
+        .expect("avif-rs: failed to generate bindings from avif.h");
 
     bindings
         .write_to_file(out_dir.join("bindings.rs"))
-        .expect("avif-rust: failed to write bindings.rs");
+        .expect("avif-rs: failed to write bindings.rs");
 }
