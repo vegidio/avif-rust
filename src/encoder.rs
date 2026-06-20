@@ -60,7 +60,7 @@ impl Default for EncoderConfig {
 ///
 /// # Example
 /// ```no_run
-/// use avif_rust::AvifEncoder;
+/// use avif::AvifEncoder;
 /// use image::ImageEncoder;
 ///
 /// let img = image::open("photo.png")?;

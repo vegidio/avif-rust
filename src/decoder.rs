@@ -30,7 +30,7 @@ pub struct DecoderConfig {
 ///
 /// # Example
 /// ```no_run
-/// use avif_rust::AvifDecoder;
+/// use avif::AvifDecoder;
 /// use image::DynamicImage;
 /// use std::io::Cursor;
 ///

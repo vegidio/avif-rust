@@ -45,8 +45,8 @@ pub fn libavif_version() -> String {
 /// # Example
 /// ```no_run
 /// let img = image::open("photo.png")?;
-/// let avif_bytes = avif_rust::encode(&img)?;
-/// # Ok::<(), avif_rust::AvifError>(())
+/// let avif_bytes = avif::encode(&img)?;
+/// # Ok::<(), avif::AvifError>(())
 /// ```
 pub fn encode(image: &DynamicImage) -> Result<Vec<u8>> {
     let mut buf = Vec::new();
@@ -62,8 +62,8 @@ pub fn encode(image: &DynamicImage) -> Result<Vec<u8>> {
 /// ```no_run
 /// use image::RgbaImage;
 /// let img: RgbaImage = image::open("photo.png")?.into_rgba8();
-/// let avif_bytes = avif_rust::encode_buffer(&img)?;
-/// # Ok::<(), avif_rust::AvifError>(())
+/// let avif_bytes = avif::encode_buffer(&img)?;
+/// # Ok::<(), avif::AvifError>(())
 /// ```
 pub fn encode_buffer<P, C>(buffer: &ImageBuffer<P, C>) -> Result<Vec<u8>>
 where
@@ -81,9 +81,9 @@ where
 /// # Example
 /// ```no_run
 /// # let avif_bytes: Vec<u8> = Vec::new();
-/// let img = avif_rust::decode(&avif_bytes)?;
+/// let img = avif::decode(&avif_bytes)?;
 /// img.save("output.png")?;
-/// # Ok::<(), avif_rust::AvifError>(())
+/// # Ok::<(), avif::AvifError>(())
 /// ```
 pub fn decode(data: &[u8]) -> Result<DynamicImage> {
     let decoder = AvifDecoder::new(Cursor::new(data))?;
@@ -96,9 +96,9 @@ pub fn decode(data: &[u8]) -> Result<DynamicImage> {
 /// # Example
 /// ```no_run
 /// # let avif_bytes: Vec<u8> = Vec::new();
-/// let info = avif_rust::probe(&avif_bytes)?;
+/// let info = avif::probe(&avif_bytes)?;
 /// println!("{}x{} @ {:?}", info.width, info.height, info.bit_depth);
-/// # Ok::<(), avif_rust::AvifError>(())
+/// # Ok::<(), avif::AvifError>(())
 /// ```
 pub fn probe(data: &[u8]) -> Result<ImageInfo> {
     let decoder = AvifDecoder::new(Cursor::new(data))?;

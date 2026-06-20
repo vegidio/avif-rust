@@ -5,6 +5,9 @@ edition = "2024"
 links = "avif"
 build = "build.rs"
 
+[lib]
+name = "avif"
+
 [dependencies]
 image = "0.25"
 thiserror = "2"
