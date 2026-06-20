@@ -16,6 +16,7 @@
 mod decoder;
 mod encoder;
 mod error;
+mod ffi;
 mod info;
 mod sys;
 
