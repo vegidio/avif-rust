@@ -115,7 +115,7 @@ dependencies = [
 
 [[package]]
 name = "avif-rs"
-version = "0.1.0"
+version = "26.6.0"
 dependencies = [
  "bindgen",
  "image",
