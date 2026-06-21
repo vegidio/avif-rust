@@ -12,7 +12,7 @@ readme = "README.md"
 authors = ["Vinicius Egidio <me@vinicius.io>"]
 keywords = ["avif", "image", "av1", "svt-av1", "encoding"]
 categories = ["multimedia::images", "encoding"]
-exclude = [".idea/", ".editorconfig", "rustfmt.toml"]
+exclude = [".github/", ".idea/", ".editorconfig", "assets/", "rustfmt.toml"]
 
 [lib]
 name = "avif"
