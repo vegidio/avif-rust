@@ -17,12 +17,12 @@ use std::io;
 use std::path::{Path, PathBuf};
 
 /// Version of the `binaries-avif` release to download.
-const VERSION: &str = "26.6.0";
+const VERSION: &str = "26.6.1";
 
 /// Static archives ship these `.a` libraries. Listed dependents-before-dependencies so
 /// that GNU ld's single-pass resolution finds every symbol.
 const STATIC_LIBS: &[&str] = &[
-    "avif", "svtav1", "dav1d", "yuv", "jpeg", "turbojpeg", "fastfeat",
+    "avif", "SvtAv1Enc", "dav1d", "yuv", "jpeg", "turbojpeg", "fastfeat",
 ];
 
 fn main() {
@@ -159,10 +159,9 @@ fn emit_link_directives(lib_dir: &Path) {
             println!("cargo:rustc-link-lib=dylib=dl");
         }
         "windows" => {
-            // The release `.a` archives are GNU-style; building for Windows therefore
-            // expects the `*-pc-windows-gnu` toolchain.
-            println!("cargo:rustc-link-lib=dylib=stdc++");
-            println!("cargo:rustc-link-lib=dylib=pthread");
+            // The release ships MSVC `.lib` archives, which link the C/C++ runtime
+            // automatically via the objects' default-lib directives, so no explicit
+            // runtime libraries are needed here.
         }
         _ => {}
     }
